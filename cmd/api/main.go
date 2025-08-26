@@ -1,0 +1,21 @@
+package main
+
+import (
+	"github.com/GoLogann/karhub-beer/adapter/http"
+	"github.com/GoLogann/karhub-beer/infra/postgres"
+	"github.com/GoLogann/karhub-beer/module/beer"
+	"github.com/GoLogann/karhub-beer/module/spotify"
+	"go.uber.org/fx"
+)
+
+func main() {
+	app := fx.New(
+		fx.Provide(postgres.InitDB),
+		http.RouterModule(),
+		spotify.SpotifyModule,
+		beer.BeerModule,
+		fx.Invoke(http.RegisterRoutes),
+	)
+
+	app.Run()
+}
