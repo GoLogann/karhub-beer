@@ -62,5 +62,5 @@ type PlaylistInfo struct {
 	Name   string      `json:"name"`
 	Link   string      `json:"link"`
 	Image  string      `json:"image,omitempty"`
-	Tracks []TrackInfo `json:"tracks,omitempty"` // preenchido manualmente
+	Tracks []TrackInfo `json:"tracks,omitempty"`
 }

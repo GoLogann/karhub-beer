@@ -1,22 +1,37 @@
 package domain
 
 import (
+	"errors"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type BeerStyle struct {
-	ID             uuid.UUID `gorm:"primaryKey"`
-	Name           string    `gorm:"uniqueIndex;size:100;not null"`
-	MinTemperature float64   `gorm:"not null"`
-	MaxTemperature float64   `gorm:"not null"`
+	ID             uuid.UUID `gorm:"primaryKey" validate:"required"`
+	Name           string    `gorm:"uniqueIndex;size:100;not null" validate:"required"`
+	MinTemperature float64   `gorm:"not null" validate:"required"`
+	MaxTemperature float64   `gorm:"not null" validate:"required"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
 
 func (bs *BeerStyle) TableName() string {
 	return "karhub_beer.beer_styles"
+}
+
+func (bs *BeerStyle) Validate() error {
+	validate := validator.New()
+	// validação básica (required, etc.)
+	if err := validate.Struct(bs); err != nil {
+		return err
+	}
+	// regra de negócio: min < max
+	if bs.MinTemperature >= bs.MaxTemperature {
+		return errors.New("min_temperature must be less than max_temperature")
+	}
+	return nil
 }
 
 func (bs *BeerStyle) AvgTemperature() float64 {
