@@ -35,10 +35,10 @@ type SearchResponse struct {
 
 type TracksResponse struct {
 	Items []struct {
-		Track *struct { // pode vir null quando item é episode
+		Track *struct {
 			ID     string `json:"id"`
 			Name   string `json:"name"`
-			Type   string `json:"type"` // "track" ou "episode"
+			Type   string `json:"type"`
 			Artists []struct {
 				Name string `json:"name"`
 			} `json:"artists"`
