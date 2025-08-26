@@ -1,0 +1,42 @@
+version: '3.7'
+services:
+  karhub-beer-postgresql:
+    image: postgres:16.4
+    container_name: karhub-beer-postgresql
+    environment:
+      POSTGRES_DB: karhub_beer
+      POSTGRES_USER: karhub
+      POSTGRES_PASSWORD: karhubbeer
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+    ports:
+      - "5432:5432"
+    networks:
+      - karhub-beer-network
+
+  karhub-beer-flyway:
+    image: flyway/flyway:7.0.2
+    container_name: karhub-beer-flyway
+    command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
+    volumes:
+      - ./migrate/changelogs:/flyway/sql
+      - ./migrate/flyway.config:/flyway/conf/flyway.config
+    networks:
+      - karhub-beer-network
+
+  karhub-beer-redis:
+    image: redis:7.4
+    container_name: karhub-beer-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - karhub-beer-network
+
+networks:
+  karhub-beer-network:
+    driver: bridge
+    name: karhub-beer-network
+
+volumes:
+  minio-data:
