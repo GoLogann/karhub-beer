@@ -23,11 +23,9 @@ func (bs *BeerStyle) TableName() string {
 
 func (bs *BeerStyle) Validate() error {
 	validate := validator.New()
-	// validação básica (required, etc.)
 	if err := validate.Struct(bs); err != nil {
 		return err
 	}
-	// regra de negócio: min < max
 	if bs.MinTemperature >= bs.MaxTemperature {
 		return errors.New("min_temperature must be less than max_temperature")
 	}
