@@ -2,11 +2,14 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/GoLogann/karhub-beer/core/usecase"
 	"github.com/GoLogann/karhub-beer/domain"
+	"github.com/GoLogann/karhub-beer/infra/redis"
 	"github.com/GoLogann/karhub-beer/infra/spotify"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -15,10 +18,11 @@ import (
 type BeerHandler struct {
 	uc      *usecase.BeerUseCase
 	spotify *spotify.Client
+	cache   *redis.Client
 }
 
-func NewBeerHandler(uc *usecase.BeerUseCase, sc *spotify.Client) *BeerHandler {
-	return &BeerHandler{uc: uc, spotify: sc}
+func NewBeerHandler(uc *usecase.BeerUseCase, sc *spotify.Client, cache *redis.Client) *BeerHandler {
+	return &BeerHandler{uc: uc, spotify: sc, cache: cache}
 }
 
 func (h *BeerHandler) Create(c *gin.Context) {
@@ -101,13 +105,21 @@ func (h *BeerHandler) Recommend(c *gin.Context) {
 		return
 	}
 
+	cacheKey := fmt.Sprintf("recommend:%v", payload.Temperature)
+	ctx := c.Request.Context()
+
+	if cached, err := h.cache.Get(ctx, cacheKey); err == nil {
+		c.Data(http.StatusOK, "application/json", []byte(cached))
+		return
+	}
+
 	style, err := h.uc.FindClosest(payload.Temperature)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "no beer style found"})
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	playlist, err := h.spotify.GetPlaylistWithTracks(ctx, style.Name, "BR")
@@ -116,11 +128,17 @@ func (h *BeerHandler) Recommend(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	resp := gin.H{
 		"beerStyle": style.Name,
 		"playlist": gin.H{
 			"name":   playlist.Name,
+			"link":   playlist.Link,
 			"tracks": playlist.Tracks,
 		},
-	})
+	}
+
+	jsonResp, _ := json.Marshal(resp)
+	_ = h.cache.Set(ctx, cacheKey, string(jsonResp), time.Hour)
+
+	c.JSON(http.StatusOK, resp)
 }
