@@ -1,3 +1,7 @@
 #!/bin/bash
-psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'karhub_beer'" \
-| grep -q 1 || psql -U postgres -c "CREATE DATABASE karhub_beer"
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    CREATE DATABASE karhub_beer;
+    CREATE DATABASE keycloak;
+EOSQL

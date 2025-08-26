@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -42,18 +43,7 @@ func NewClientWithCredentials(clientID, clientSecret string) *Client {
 	}
 }
 
-func (c *Client) ValidateCredentials() error {
-	if strings.TrimSpace(c.ClientID) == "" {
-		return fmt.Errorf("SPOTIFY_CLIENT_ID environment variable is required")
-	}
-	if strings.TrimSpace(c.ClientSecret) == "" {
-		return fmt.Errorf("SPOTIFY_CLIENT_SECRET environment variable is required")
-	}
-	return nil
-}
-
 func (c *Client) isTokenValid() bool {
-	// margem de 30s para evitar expirar no meio da requisição
 	return c.AccessToken != "" && time.Now().Add(30*time.Second).Before(c.ExpiresAt)
 }
 
@@ -65,10 +55,6 @@ func (c *Client) ensureValidToken(ctx context.Context) error {
 }
 
 func (c *Client) authenticate(ctx context.Context) error {
-	if err := c.ValidateCredentials(); err != nil {
-		return fmt.Errorf("validation failed: %w", err)
-	}
-
 	auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.ClientID, c.ClientSecret)))
 
 	data := url.Values{}
@@ -102,16 +88,13 @@ func (c *Client) authenticate(ctx context.Context) error {
 	}
 
 	c.AccessToken = token.AccessToken
-	// subtrai 5 min como folga
 	c.ExpiresAt = time.Now().Add(time.Duration(token.ExpiresIn-300) * time.Second)
 	return nil
 }
 
-// Requisições com retry básico, respeitando Retry-After em 429.
 func (c *Client) makeRequestWithRetry(ctx context.Context, req *http.Request) (*http.Response, error) {
 	maxRetries := 3
 
-	// Para GETs, não há body; para POST com body, vamos bufar uma vez.
 	var bodyCopy []byte
 	if req.Body != nil {
 		var err error
@@ -138,7 +121,6 @@ func (c *Client) makeRequestWithRetry(ctx context.Context, req *http.Request) (*
 		}
 
 		if resp.StatusCode == http.StatusTooManyRequests {
-			// Respeita Retry-After (segundos)
 			retryAfter := resp.Header.Get("Retry-After")
 			resp.Body.Close()
 			var wait time.Duration = 5 * time.Second
@@ -180,11 +162,6 @@ func (c *Client) handleAPIError(resp *http.Response) error {
 	return fmt.Errorf("spotify API error (%d): %s", resp.StatusCode, string(body))
 }
 
-/* ===========================
-   High-level methods
-   =========================== */
-
-// Busca playlists (paginável). Use limit<=50.
 func (c *Client) SearchPlaylists(ctx context.Context, query, market string, limit, offset int) ([]PlaylistInfo, error) {
 	if strings.TrimSpace(query) == "" {
 		return nil, fmt.Errorf("query cannot be empty")
@@ -230,12 +207,13 @@ func (c *Client) SearchPlaylists(ctx context.Context, query, market string, limi
 		return nil, fmt.Errorf("failed to decode search response: %w", err)
 	}
 
-	if len(searchResp.Playlists.Items) == 0 {
-		return nil, fmt.Errorf("no playlist found for query: %s", query)
-	}
-
 	var playlists []PlaylistInfo
 	for _, p := range searchResp.Playlists.Items {
+		if p.ID == "" || p.Name == "" {
+			log.Printf("Skipping empty playlist: ID='%s', Name='%s'", p.ID, p.Name)
+			continue
+		}
+		
 		var image string
 		if len(p.Images) > 0 {
 			image = p.Images[0].URL
@@ -248,10 +226,13 @@ func (c *Client) SearchPlaylists(ctx context.Context, query, market string, limi
 		})
 	}
 
+	if len(playlists) == 0 {
+		return nil, fmt.Errorf("no valid playlist found for query: %s", query)
+	}
+
 	return playlists, nil
 }
 
-// Retorna TODAS as faixas de uma playlist (segue paginação até acabar).
 func (c *Client) GetAllPlaylistTracks(ctx context.Context, playlistID, market string) ([]TrackInfo, error) {
 	if strings.TrimSpace(playlistID) == "" {
 		return nil, fmt.Errorf("playlist ID cannot be empty")
@@ -262,8 +243,8 @@ func (c *Client) GetAllPlaylistTracks(ctx context.Context, playlistID, market st
 
 	baseURL := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks", playlistID)
 	qs := url.Values{}
-	qs.Set("limit", "100")                // máximo permitido
-	qs.Set("additional_types", "track")   // ignora episodes
+	qs.Set("limit", "100")   
+	qs.Set("additional_types", "track")
 	if market != "" {
 		qs.Set("market", market)
 	}
@@ -318,13 +299,17 @@ func (c *Client) GetAllPlaylistTracks(ctx context.Context, playlistID, market st
 	return all, nil
 }
 
-// Busca a primeira playlist pela query e carrega suas faixas (todas).
+
 func (c *Client) GetPlaylistWithTracks(ctx context.Context, query, market string) (*PlaylistInfo, error) {
-	playlists, err := c.SearchPlaylists(ctx, query, market, 1, 0)
+	playlists, err := c.SearchPlaylists(ctx, query, market, 10, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search playlist: %w", err)
 	}
+	
+	log.Printf("Found %d valid playlists for query '%s'", len(playlists), query)
+	
 	pl := playlists[0]
+	log.Printf("Selected playlist: ID='%s', Name='%s'", pl.ID, pl.Name)
 
 	tracks, err := c.GetAllPlaylistTracks(ctx, pl.ID, market)
 	if err != nil {
@@ -332,6 +317,7 @@ func (c *Client) GetPlaylistWithTracks(ctx context.Context, query, market string
 	}
 
 	pl.Tracks = tracks
+	log.Printf("Loaded %d tracks for playlist '%s'", len(tracks), pl.Name)
 	return &pl, nil
 }
 

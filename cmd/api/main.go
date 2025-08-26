@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/GoLogann/karhub-beer/adapter/http"
 	"github.com/GoLogann/karhub-beer/infra/postgres"
+	"github.com/GoLogann/karhub-beer/module/auth"
 	"github.com/GoLogann/karhub-beer/module/beer"
 	"github.com/GoLogann/karhub-beer/module/spotify"
 	"go.uber.org/fx"
@@ -14,6 +15,7 @@ func main() {
 		http.RouterModule(),
 		spotify.SpotifyModule,
 		beer.BeerModule,
+		auth.AuthModule,
 		fx.Invoke(http.RegisterRoutes),
 	)
 
