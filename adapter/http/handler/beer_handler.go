@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"time"
-	"strconv"
 
 	"github.com/GoLogann/karhub-beer/core/usecase"
 	"github.com/GoLogann/karhub-beer/domain"
@@ -111,7 +110,7 @@ func (h *BeerHandler) Recommend(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 15*time.Second)
 	defer cancel()
 
-	playlist, err := h.spotify.GetPlaylistWithTracks(ctx, style.Name, strconv.Itoa(5))
+	playlist, err := h.spotify.GetPlaylistWithTracks(ctx, style.Name, "BR")
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "no playlist found for style"})
 		return
