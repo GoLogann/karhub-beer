@@ -5,13 +5,14 @@ import (
 
 	"github.com/GoLogann/karhub-beer/adapter/http/handler"
 	"github.com/GoLogann/karhub-beer/adapter/http/router"
+	"github.com/GoLogann/karhub-beer/infra/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/fx"
 )
 
 func StartServer(lc fx.Lifecycle, r *gin.Engine) {
-	port := ":8080"
+	port := ":8000"
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
@@ -32,9 +33,18 @@ func StartServer(lc fx.Lifecycle, r *gin.Engine) {
 func RegisterRoutes(
 	r *gin.Engine,
 	beerHandler *handler.BeerHandler,
+	authHandler *handler.AuthHandler,
+	m *auth.Middleware,
 ) {
-	router.SetupBeerRoutes(r, beerHandler)
+	router.SetupAuthRoutes(r, authHandler)
+
+	protected := r.Group("/api/v1")
+	protected.Use(m.JWTAuthMiddleware())
+
+	router.SetupBeerRoutes(protected, beerHandler)
 }
+
+
 
 func SetupRouter() *gin.Engine {
 	return gin.Default()
