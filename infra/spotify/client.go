@@ -25,8 +25,8 @@ type Client struct {
 
 func NewClient() *Client {
 	return &Client{
-		ClientID:     "7454f0ce49054094bd965e089db55f13",
-		ClientSecret: "5ee7d99edafc4b93b064f6da141e63dd",
+		ClientID:     "",
+		ClientSecret: "",
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
