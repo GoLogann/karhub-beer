@@ -33,10 +33,27 @@ services:
     networks:
       - karhub-beer-network
 
+  karhub-keycloak:
+    image: quay.io/keycloak/keycloak:26.0.0
+    container_name: karhub-keycloak
+    command: start-dev
+    environment:
+      TZ: America/Belem
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://karhub-beer-postgresql:5432/keycloak
+      KC_DB_USERNAME: karhub
+      KC_DB_PASSWORD: karhubbeer
+      KC_HOSTNAME_URL: http://localhost:8080
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - karhub-beer-postgresql
+    networks:
+      - karhub-beer-network
+
 networks:
   karhub-beer-network:
     driver: bridge
     name: karhub-beer-network
-
-volumes:
-  minio-data:
