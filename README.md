@@ -1,7 +1,3 @@
-Aqui está um **README.md** pronto para o repositório do **KarHub Beer** — cobrindo o que o desafio pede (“documentar e explicar como rodar localmente”) e o que já estruturamos.
-
----
-
 # KarHub Beer
 
 Backend em **Go** para **recomendar um estilo de cerveja** com base em uma **temperatura** informada e **sugerir uma playlist do Spotify** combinando com o estilo.
