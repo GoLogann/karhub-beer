@@ -16,3 +16,7 @@ var AuthModule = fx.Options(
 		handler.NewAuthHandler,
 	),
 )
+
+func NewAuthHandler(uc *usecase.AuthUsecase) *handler.AuthHandler {
+	return handler.NewAuthHandler(uc)
+}
