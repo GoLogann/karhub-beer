@@ -16,9 +16,6 @@ Inclui documentação Swagger, persistência em PostgreSQL, **cache em Redis** e
 * [API](#api)
 * [Swagger / OpenAPI](#swagger--openapi)
 * [Testes](#testes)
-* [Padrão de commits](#padrão-de-commits)
-* [Roadmap curto](#roadmap-curto)
-* [Troubleshooting](#troubleshooting)
 
 ---
 
