@@ -1,7 +1,7 @@
 # KarHub Beer
 
 Backend em **Go** para **recomendar um estilo de cerveja** com base em uma **temperatura** informada e **sugerir uma playlist do Spotify** combinando com o estilo.
-Inclui documentação Swagger, persistência em PostgreSQL e cache opcional em Redis.
+Inclui documentação Swagger, persistência em PostgreSQL, **cache em Redis** e **autenticação via Keycloak**.
 
 ## Sumário
 
@@ -12,7 +12,7 @@ Inclui documentação Swagger, persistência em PostgreSQL e cache opcional em R
 * [Banco de dados & Migrações](#banco-de-dados--migrações)
 * [Seed de estilos](#seed-de-estilos)
 * [Integração Spotify](#integração-spotify)
-* [Autenticação (opcional: Keycloak)](#autenticação-opcional-keycloak)
+* [Autenticação (Keycloak)](#autenticação-keycloak)
 * [API](#api)
 * [Swagger / OpenAPI](#swagger--openapi)
 * [Testes](#testes)
@@ -30,12 +30,12 @@ Inclui documentação Swagger, persistência em PostgreSQL e cache opcional em R
   * `adapter/http`: handlers e rotas (ex.: `/recommend`)
   * `core/usecase`: regras de negócio (ex.: `FindClosest`)
   * `adapter/repository`: persistência (GORM)
-  * `infra/postgres`, `infra/spotify`, `infra/redis` (opcional)
+  * `infra/postgres`, `infra/spotify`, `infra/redis`
   * `module/*`: módulos Fx (ex.: `BeerModule`, `SpotifyModule`)
 * **Domínio**: `BeerStyle`, `Recommendation`, `Playlist` (+ `Validate()` com go-playground/validator)
 * **DB**: PostgreSQL + GORM (mutações/migrações via Flyway)
-* **Cache**: Redis (opcional)
-* **Auth**: Keycloak (opcional, preparado)
+* **Cache**: **Redis (implementado)**
+* **Auth**: **Keycloak (implementado)**
 * **Docs**: Swagger (swaggo)
 
 ---
@@ -64,7 +64,7 @@ cd karhub-beer
 cp .env.example .env
 ```
 
-3. **Suba Postgres (e Redis opcional)** com Docker Compose:
+3. **Suba Postgres e Redis** com Docker Compose:
 
 ```yaml
 # docker-compose.yml (exemplo)
@@ -102,7 +102,7 @@ Suba os serviços:
 docker compose up -d
 ```
 
-4. **Execute migrações** (ver [Banco de dados & Migrações](#banco-de-dados--migrações)).
+4. **Execute as migrações** (ver [Banco de dados & Migrações](#banco-de-dados--migrações)).
 
 5. **Rode a aplicação**:
 
@@ -134,7 +134,7 @@ DB_PASSWORD=karhub
 DB_NAME=karhub_beer
 DB_SSLMODE=disable
 
-# Redis (opcional)
+# Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
@@ -142,7 +142,7 @@ REDIS_PORT=6379
 SPOTIFY_CLIENT_ID=SEU_CLIENT_ID
 SPOTIFY_CLIENT_SECRET=SEU_CLIENT_SECRET
 
-# Keycloak (opcional)
+# Keycloak
 KEYCLOAK_BASE_URL=http://localhost:8080
 KEYCLOAK_REALM=karhub-beer
 KEYCLOAK_CLIENT_ID=karhub-beer-api
@@ -218,21 +218,38 @@ VALUES
 
 A app usa **Client Credentials**:
 
-1. Crie um app em [https://developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
-2. Pegue `Client ID` e `Client Secret`
-3. Preencha no `.env`
-4. A busca de playlist usa o **nome do estilo** como termo (ex.: “Weissbier”, “IPA”, etc.)
-
-> **Cache opcional**: se `REDIS_HOST/PORT` estiverem setados, podemos cachear resultados de playlist por estilo.
+1. Crie um app no **Spotify Developer Dashboard**.
+2. Pegue `Client ID` e `Client Secret`.
+3. Preencha no `.env`.
+4. A busca de playlist usa o **nome do estilo** como termo (ex.: “Weissbier”, “IPA”, etc.).
 
 ---
 
-## Autenticação (opcional: Keycloak)
+## Autenticação (Keycloak)
 
-* Realm: `karhub-beer`
-* Client: `karhub-beer-api`
-* Para proteger rotas, ative o middleware e **crie o realm role `user`** (erro comum: “Role not found”).
-* Neste MVP, `/recommend` pode ficar **público** para facilitar a validação do desafio.
+Com o Keycloak implementado, endpoints protegidos exigem **Bearer Token** (OIDC).
+
+**Obter um access token (client credentials):**
+
+```bash
+curl -X POST "$KEYCLOAK_BASE_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=$KEYCLOAK_CLIENT_ID" \
+  -d "client_secret=$KEYCLOAK_CLIENT_SECRET" \
+  -d "grant_type=client_credentials"
+```
+
+**Chamar a API com o token:**
+
+```bash
+ACCESS_TOKEN="<<cole-o-token-aqui>>"
+curl -X POST http://localhost:8080/recommend \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -d '{"temperature": 2.5}'
+```
+
+> **Roles**: garanta que o client/realm possua o **role** esperado pela API (ex.: `user`) e que o middleware valide o token/roles.
 
 ---
 
@@ -270,6 +287,7 @@ Recebe uma temperatura e retorna o estilo mais adequado e uma playlist do Spotif
 **cURL**
 
 ```bash
+# se a rota estiver protegida, inclua o Authorization (ver seção Keycloak)
 curl -X POST http://localhost:8080/recommend \
   -H "Content-Type: application/json" \
   -d '{"temperature": 2.5}'
@@ -301,45 +319,3 @@ Unitários e integração:
 ```bash
 go test ./...
 ```
-
-Sugestões:
-
-* Usecase: `FindClosest` (intervalos, empates, bordas)
-* Handler: `/recommend` (200, 400, 404)
-* Integração com DB (mock ou container)
-
----
-
-## Padrão de commits
-
-* `feat:` nova funcionalidade
-* `fix:` correção de bug
-* `docs:` documentação
-* `chore:` manutenção/infra/CI
-* `refactor:` melhoria interna sem mudar comportamento
-* `test:` testes
-
-Ex.: `feat(spotify): buscar playlist por estilo e retornar top 3 faixas`
-
----
-
-## Roadmap curto
-
-* [ ] Conectar Spotify no `/recommend` (retornar `playlist_url` + 3–5 faixas)
-* [ ] Cache Redis para buscas de playlist por estilo
-* [ ] Proteger endpoints com Keycloak (role `user`)
-* [ ] Mais testes (unit/integration) e exemplos no Swagger
-* [ ] (Opcional) Migrar `beer_styles.id` para UUID para consistência
-
----
-
-## Troubleshooting
-
-* **DNS/host Postgres**: erro `hostname resolving error`
-  → Verifique `DB_HOST` no `.env` (se está `localhost` ou `karhub-beer-postgresql` dependendo do ambiente).
-
-* **Spotify 401**:
-  → Confirme `SPOTIFY_CLIENT_ID/SECRET` e que a autenticação Client Credentials está ativa.
-
-* **Swagger não abre**:
-  → Garanta que o `swag init` foi executado e a rota do `gin-swagger` está registrada.
