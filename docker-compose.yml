@@ -9,7 +9,9 @@ services:
       POSTGRES_PASSWORD: karhubbeer
       POSTGRES_HOST_AUTH_METHOD: md5
     volumes:
-      - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+      - postgres_data:/var/lib/postgresql/data
+      - ./dumps/keycloak_dump_20250830_1709.sql:/docker-entrypoint-initdb.d/02-keycloak.sql
+      - ./dumps/karhub_beer_dump_20250830_1709.sql:/docker-entrypoint-initdb.d/03-karhub_beer.sql
     ports:
       - "5432:5432"
     networks:
@@ -47,6 +49,8 @@ services:
       KC_HOSTNAME_URL: http://localhost:8080
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     ports:
       - "8080:8080"
     networks:
@@ -55,17 +59,20 @@ services:
       karhub-beer-flyway:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/realms/master || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   karhub-beer-redis:
     image: redis:7.4
     container_name: karhub-beer-redis
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - karhub-beer-network
     healthcheck:
@@ -104,14 +111,16 @@ services:
     networks:
       - karhub-beer-network
     depends_on:
-      karhub-beer-postgresql:
-        condition: service_healthy
-      karhub-keycloak:
-        condition: service_healthy
-      karhub-beer-redis:
-        condition: service_healthy
+      - karhub-beer-postgresql
+      - karhub-keycloak
+      - karhub-beer-redis
 
 networks:
   karhub-beer-network:
     driver: bridge
     name: karhub-beer-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  keycloak_data:
