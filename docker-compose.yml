@@ -14,6 +14,12 @@ services:
       - "5432:5432"
     networks:
       - karhub-beer-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U karhub -d karhub_beer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   karhub-beer-flyway:
     image: flyway/flyway:7.0.2
@@ -24,14 +30,9 @@ services:
       - ./migrate/flyway.config:/flyway/conf/flyway.config
     networks:
       - karhub-beer-network
-
-  karhub-beer-redis:
-    image: redis:7.4
-    container_name: karhub-beer-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - karhub-beer-network
+    depends_on:
+      karhub-beer-postgresql:
+        condition: service_healthy
 
   karhub-keycloak:
     image: quay.io/keycloak/keycloak:26.0.0
@@ -48,10 +49,31 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8080:8080"
-    depends_on:
-      - karhub-beer-postgresql
     networks:
       - karhub-beer-network
+    depends_on:
+      karhub-beer-flyway:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  karhub-beer-redis:
+    image: redis:7.4
+    container_name: karhub-beer-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - karhub-beer-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   karhub-beer-api:
     build: .
@@ -79,15 +101,17 @@ services:
       REDIS_HOST: karhub-beer-redis:6379
     ports:
       - "8081:8081"
-    depends_on:
-      - karhub-beer-postgresql
-      - karhub-beer-redis
-      - karhub-keycloak
     networks:
       - karhub-beer-network
+    depends_on:
+      karhub-beer-postgresql:
+        condition: service_healthy
+      karhub-keycloak:
+        condition: service_healthy
+      karhub-beer-redis:
+        condition: service_healthy
 
 networks:
   karhub-beer-network:
     driver: bridge
     name: karhub-beer-network
-
