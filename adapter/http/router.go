@@ -12,7 +12,7 @@ import (
 )
 
 func StartServer(lc fx.Lifecycle, r *gin.Engine) {
-	port := ":8000"
+	port := ":8081"
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {

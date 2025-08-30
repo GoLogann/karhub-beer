@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"os"
+
 	"github.com/GoLogann/karhub-beer/infra/redis"
 	"go.uber.org/fx"
 )
@@ -10,9 +12,8 @@ var RedisModule = fx.Options(
 )
 
 func NewRedisClient() *redis.Client {
-	addr := "localhost:6379"
-	password := ""
+	addr := os.Getenv("REDIS_HOST")
 	db := 0
 
-	return redis.NewClient(addr, password, db)
+	return redis.NewClient(addr, db)
 }

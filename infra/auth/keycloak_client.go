@@ -1,15 +1,16 @@
 package auth
 
 import (
-    "bytes"
-    "encoding/json"
-    "fmt"
-    "io"
-    "net/http"
-    "net/url"
-    "strings"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
 
-    "github.com/GoLogann/karhub-beer/domain"
+	"github.com/GoLogann/karhub-beer/domain"
 )
 
 type KeycloakClient struct {
@@ -22,14 +23,14 @@ type KeycloakClient struct {
 }
 
 func NewKeycloakClient() *KeycloakClient {
-    return &KeycloakClient{
-        BaseURL:   "http://localhost:8080",
-        Realm:     "karhub-beer",
-        ClientID:  "karhub-beer-api",
-        Secret:    "CHANGE_ME_IF_CONFIDENTIAL",
-        AdminUser: "admin",
-        AdminPass: "admin",
-    }
+	return &KeycloakClient{
+		BaseURL:   os.Getenv("KC_BASE_URL"),     
+		Realm:     os.Getenv("KC_REALM"),       
+		ClientID:  os.Getenv("KC_CLIENT_ID"),    
+		Secret:    os.Getenv("KC_CLIENT_SECRET"),
+		AdminUser: os.Getenv("KC_ADMIN_USER"),
+		AdminPass: os.Getenv("KC_ADMIN_PASS"),
+	}
 }
 
 func (kc *KeycloakClient) getAdminToken() (string, error) {

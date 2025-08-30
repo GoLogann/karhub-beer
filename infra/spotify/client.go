@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -25,8 +26,8 @@ type Client struct {
 
 func NewClient() *Client {
 	return &Client{
-		ClientID:     "",
-		ClientSecret: "",
+		ClientID:     os.Getenv("SPOTIFY_CLIENT_ID"),
+		ClientSecret: os.Getenv("SPOTIFY_CLIENT_SECRET"),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},

@@ -3,7 +3,6 @@ package postgres
 import (
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,11 +12,6 @@ var DB *gorm.DB
 
 func InitDB() *gorm.DB {
 	var err error
-
-	err = godotenv.Load()
-	if err != nil {
-		logrus.Fatal("Error loading .env file")
-	}
 
 	logrus.SetLevel(logrus.InfoLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{

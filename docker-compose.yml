@@ -53,6 +53,39 @@ services:
     networks:
       - karhub-beer-network
 
+  karhub-beer-api:
+    build: .
+    container_name: karhub-beer-api
+    environment:
+      DB_HOST: karhub-beer-postgresql
+      DB_PORT: 5432
+      DB_USER: karhub
+      DB_PASSWORD: karhubbeer
+      DB_NAME: karhub_beer
+      DB_SSLMODE: disable
+      DB_TIMEZONE: America/Sao_Paulo
+      DB_CONNECT_TIMEOUT: 10
+
+      SPOTIFY_CLIENT_ID: 7454f0ce49054094bd965e089db55f13
+      SPOTIFY_CLIENT_SECRET: 5ee7d99edafc4b93b064f6da141e63dd
+
+      KC_BASE_URL: http://karhub-keycloak:8080
+      KC_ISSUER_URL: http://karhub-keycloak:8080/realms/karhub-beer
+      KC_CLIENT_ID: karhub-beer-api
+      KC_REALM: karhub-beer
+      KC_ADMIN_USER: admin
+      KC_ADMIN_PASS: admin
+
+      REDIS_HOST: karhub-beer-redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - karhub-beer-postgresql
+      - karhub-beer-redis
+      - karhub-keycloak
+    networks:
+      - karhub-beer-network
+
 networks:
   karhub-beer-network:
     driver: bridge

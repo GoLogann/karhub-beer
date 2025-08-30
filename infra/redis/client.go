@@ -11,11 +11,10 @@ type Client struct {
 	rdb *redis.Client
 }
 
-func NewClient(addr, password string, db int) *Client {
+func NewClient(addr string, db int) *Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,     
-		Password: password, 
-		DB:       db,
+		Addr: addr,
+		DB:   db,
 	})
 
 	return &Client{rdb: rdb}

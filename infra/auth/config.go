@@ -1,5 +1,7 @@
 package auth
 
+import "os"
+
 
 type Config struct {
 	IssuerURL string
@@ -7,9 +9,9 @@ type Config struct {
 }
 
 func NewAuthConfig() Config {
-	issuer := "http://localhost:8080/realms/karhub-beer"
+	issuer := os.Getenv("KC_ISSUER_URL")
 
-	client := "karhub-beer-api"
+	client := os.Getenv("KC_CLIENT_ID")
 
 	return Config{
 		IssuerURL: issuer,
