@@ -28,8 +28,8 @@ func NewKeycloakClient() *KeycloakClient {
 		Realm:     os.Getenv("KC_REALM"),       
 		ClientID:  os.Getenv("KC_CLIENT_ID"),    
 		Secret:    os.Getenv("KC_CLIENT_SECRET"),
-		AdminUser: os.Getenv("KC_ADMIN_USER"),
-		AdminPass: os.Getenv("KC_ADMIN_PASS"),
+		AdminUser: os.Getenv("KC_BOOTSTRAP_ADMIN_USERNAME"),
+		AdminPass: os.Getenv("KC_BOOTSTRAP_ADMIN_PASSWORD"),
 	}
 }
 
