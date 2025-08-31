@@ -22,9 +22,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//
-// Mocks externos
-//
 type mockSpotify struct{}
 
 func (m *mockSpotify) GetPlaylistWithTracks(ctx context.Context, style, region string) (*spotify.PlaylistInfo, error) {
@@ -54,9 +51,7 @@ func (m *mockCache) Set(ctx context.Context, key, value string, ttl time.Duratio
 	return nil
 }
 
-//
-// Setup
-//
+
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Setenv("TEST_ENV", "true")
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
@@ -80,9 +75,6 @@ func setupRouter(h *handler.BeerHandler) *gin.Engine {
 	return r
 }
 
-//
-// Teste end-to-end
-//
 func TestBeerFlow_EndToEnd(t *testing.T) {
 	db := setupTestDB(t)
 	repo := repository.NewBeerRepository(db)
@@ -92,7 +84,6 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	h := handler.NewBeerHandler(uc, spotify, cache)
 	r := setupRouter(h)
 
-	// 1. Criar estilo
 	createReq := dto.BeerStyleRequest{Name: "IPA", MinTemperature: -7, MaxTemperature: 10}
 	body, _ := json.Marshal(createReq)
 	w := httptest.NewRecorder()
@@ -105,20 +96,17 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	_ = json.Unmarshal(w.Body.Bytes(), &created)
 	assert.NotEqual(t, uuid.Nil, created.ID)
 
-	// 2. Listar todos
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodGet, "/beers", nil)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "IPA")
 
-	// 3. Buscar por ID
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodGet, "/beers/"+created.ID.String(), nil)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// 4. Atualizar
 	updateReq := dto.BeerStyleRequest{Name: "IPA Atualizada", MinTemperature: -6, MaxTemperature: 12}
 	body, _ = json.Marshal(updateReq)
 	w = httptest.NewRecorder()
@@ -128,7 +116,6 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "IPA Atualizada")
 
-	// 5. Recomendar
 	recReq := dto.TemperatureRequest{Temperature: -5}
 	body, _ = json.Marshal(recReq)
 	w = httptest.NewRecorder()
@@ -138,13 +125,11 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "IPA Playlist")
 
-	// 6. Deletar
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodDelete, "/beers/"+created.ID.String(), nil)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// garantir que sumiu
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodGet, "/beers/"+created.ID.String(), nil)
 	r.ServeHTTP(w, req)

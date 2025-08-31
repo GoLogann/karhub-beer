@@ -19,13 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//
-// --------------------
-// Mocks
-// --------------------
-//
-
-// mock BeerUsecase
 type mockBeerUsecase struct {
 	style  *domain.BeerStyle
 	styles []*domain.BeerStyle
@@ -51,7 +44,6 @@ func (m *mockBeerUsecase) GetAll() ([]*domain.BeerStyle, error) {
 }
 func (m *mockBeerUsecase) FindClosest(temp float64) (*domain.BeerStyle, error) { return m.style, m.err }
 
-// mock Spotify
 type mockSpotify struct {
 	playlist *spotify.PlaylistInfo
 	err      error
@@ -61,7 +53,6 @@ func (m *mockSpotify) GetPlaylistWithTracks(ctx context.Context, style, region s
 	return m.playlist, m.err
 }
 
-// mock Redis
 type mockCache struct {
 	store map[string]string
 }
@@ -77,11 +68,6 @@ func (m *mockCache) Set(ctx context.Context, key, value string, ttl time.Duratio
 	return nil
 }
 
-//
-// --------------------
-// Setup
-// --------------------
-//
 
 func setupRouter(h *handler.BeerHandler) *gin.Engine {
 	r := gin.Default()
@@ -93,12 +79,6 @@ func setupRouter(h *handler.BeerHandler) *gin.Engine {
 	r.POST("/beers/recommend", h.Recommend)
 	return r
 }
-
-//
-// --------------------
-// Tests
-// --------------------
-//
 
 func TestBeerHandler_GetAll(t *testing.T) {
 	mockStyle := &domain.BeerStyle{ID: uuid.New(), Name: "IPA"}
