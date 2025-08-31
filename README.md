@@ -124,7 +124,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 
 ```bash
 # Subir apenas PostgreSQL, Redis, Keycloak e Jaeger
-docker compose up postgres redis keycloak jaeger -d
+docker compose up karhub-beer-postgresql karhub-beer-flyway karhub-beer-redis karhub-keycloak karhub-beer-jaeger -d
 ```
 
 #### 5. Prepare o Keycloak (reset + dump)
