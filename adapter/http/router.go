@@ -13,7 +13,7 @@ import (
 )
 
 func StartServer(lc fx.Lifecycle, r *gin.Engine) {
-	port := ":8081"
+	port := ":8082"
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
@@ -48,10 +48,8 @@ func RegisterRoutes(
 func SetupRouter() *gin.Engine {
 	r := gin.New()
 
-	// aplica middleware de observabilidade em todas as rotas
 	r.Use(otelgin.Middleware("karhub-beer-api"))
 
-	// também adiciona logger e recovery do Gin
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 

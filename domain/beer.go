@@ -10,7 +10,7 @@ import (
 )
 
 type BeerStyle struct {
-	ID             uuid.UUID `gorm:"primaryKey" validate:"required"`
+	ID             uuid.UUID `gorm:"primaryKey"`
 	Name           string    `gorm:"uniqueIndex;size:100;not null" validate:"required"`
 	MinTemperature float64   `gorm:"not null" validate:"required"`
 	MaxTemperature float64   `gorm:"not null" validate:"required"`

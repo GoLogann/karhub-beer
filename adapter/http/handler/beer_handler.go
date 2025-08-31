@@ -54,6 +54,12 @@ func (h *BeerHandler) Create(c *gin.Context) {
 		MaxTemperature: req.MaxTemperature,
 	}
 
+	err := style.Validate()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
+		return
+	}
+
 	created, err := h.uc.Create(&style)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: err.Error()})
