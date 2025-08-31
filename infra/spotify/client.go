@@ -16,6 +16,12 @@ import (
 	"time"
 )
 
+type SpotifyInterface interface {
+	GetPlaylistWithTracks(ctx context.Context, query, market string) (*PlaylistInfo, error)
+}
+
+var _ SpotifyInterface = (*Client)(nil) 
+
 type Client struct {
 	ClientID     string
 	ClientSecret string

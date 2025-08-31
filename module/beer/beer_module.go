@@ -11,19 +11,23 @@ import (
 )
 
 var BeerModule = fx.Options(
-	fx.Provide(NewBeerRepository),
-	fx.Provide(NewBeerUseCase),
-	fx.Provide(NewBeerHandler),
+    fx.Provide(NewBeerRepository),
+    fx.Provide(NewBeerUseCase),
+    fx.Provide(NewBeerHandler),
 )
 
 func NewBeerRepository(db *gorm.DB) repository.BeerRepository {
-	return repository.NewBeerRepository(db)
+    return repository.NewBeerRepository(db)
 }
 
-func NewBeerUseCase(repo repository.BeerRepository) *usecase.BeerUseCase {
-	return usecase.NewBeerUseCase(repo)
+func NewBeerUseCase(repo repository.BeerRepository) usecase.BeerUsecaseInterface {
+    return usecase.NewBeerUseCase(repo)
 }
 
-func NewBeerHandler(uc *usecase.BeerUseCase, sc *spotify.Client, cache *redis.Client) *handler.BeerHandler {
-	return handler.NewBeerHandler(uc, sc, cache)
+func NewBeerHandler(
+    uc usecase.BeerUsecaseInterface,
+    sc spotify.SpotifyInterface,
+    cache redis.RedisInterface,
+) *handler.BeerHandler {
+    return handler.NewBeerHandler(uc, sc, cache)
 }

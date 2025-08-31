@@ -45,6 +45,8 @@ import (
 	"github.com/GoLogann/karhub-beer/module/redis"
 	"github.com/GoLogann/karhub-beer/module/spotify"
 	"github.com/GoLogann/karhub-beer/module/trace"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	_ "github.com/GoLogann/karhub-beer/docs"
 
@@ -59,6 +61,10 @@ func setupSwagger(r *gin.Engine) {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		logrus.Println("Nenhum arquivo .env encontrado, usando variáveis de ambiente do sistema")
+	}
+
 	app := fx.New(
 		trace.TracerModule(),    
 		fx.Provide(postgres.InitDB),

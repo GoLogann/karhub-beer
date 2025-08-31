@@ -17,12 +17,12 @@ import (
 )
 
 type BeerHandler struct {
-	uc      *usecase.BeerUseCase
-	spotify *spotify.Client
-	cache   *redis.Client
+	uc      usecase.BeerUsecaseInterface
+	spotify spotify.SpotifyInterface
+	cache   redis.RedisInterface
 }
 
-func NewBeerHandler(uc *usecase.BeerUseCase, sc *spotify.Client, cache *redis.Client) *BeerHandler {
+func NewBeerHandler(uc usecase.BeerUsecaseInterface, sc spotify.SpotifyInterface, cache redis.RedisInterface) *BeerHandler {
 	return &BeerHandler{uc: uc, spotify: sc, cache: cache}
 }
 

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -18,6 +19,9 @@ type BeerStyle struct {
 }
 
 func (bs *BeerStyle) TableName() string {
+	if os.Getenv("TEST_ENV") == "true" {
+        return "beer_styles"
+    }
 	return "karhub_beer.beer_styles"
 }
 

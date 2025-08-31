@@ -6,5 +6,9 @@ import (
 )
 
 var SpotifyModule = fx.Options(
-	fx.Provide(spotify.NewClient),
+	fx.Provide(NewSpotifyClient),
 )
+
+func NewSpotifyClient() spotify.SpotifyInterface {
+	return spotify.NewClient()
+}

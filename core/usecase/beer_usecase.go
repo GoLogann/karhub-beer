@@ -14,6 +14,15 @@ var (
 	ErrNoBeerStyles = errors.New("no beer styles registered")
 )
 
+type BeerUsecaseInterface interface {
+	Create(*domain.BeerStyle) (*domain.BeerStyle, error)
+	Update(*domain.BeerStyle) (*domain.BeerStyle, error)
+	Delete(uuid.UUID) error
+	GetByID(uuid.UUID) (*domain.BeerStyle, error)
+	GetAll() ([]*domain.BeerStyle, error)
+	FindClosest(float64) (*domain.BeerStyle, error)
+}
+
 type BeerUseCase struct {
 	repo repository.BeerRepository
 }
@@ -21,6 +30,8 @@ type BeerUseCase struct {
 func NewBeerUseCase(repo repository.BeerRepository) *BeerUseCase {
 	return &BeerUseCase{repo: repo}
 }
+
+var _ BeerUsecaseInterface = (*BeerUseCase)(nil)
 
 func (uc *BeerUseCase) Create(style *domain.BeerStyle) (*domain.BeerStyle, error) {
 	return uc.repo.Create(style)

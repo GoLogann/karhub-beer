@@ -9,6 +9,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type RedisInterface interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value string, ttl time.Duration) error
+}
+
+var _ RedisInterface = (*Client)(nil)
+
 type Client struct {
     rdb *redis.Client
 }
