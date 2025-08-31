@@ -6,17 +6,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 var DB *gorm.DB
 
 func InitDB() *gorm.DB {
-	var err error
-
 	logrus.SetLevel(logrus.InfoLevel)
-	logrus.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp: true,
-	})
+	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 
 	logrus.Info("Connecting to PostgreSQL...")
 
@@ -29,7 +26,7 @@ func InitDB() *gorm.DB {
 		" TimeZone=" + os.Getenv("DB_TIMEZONE") +
 		" connect_timeout=" + os.Getenv("DB_CONNECT_TIMEOUT")
 
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"host":     os.Getenv("DB_HOST"),
@@ -38,6 +35,11 @@ func InitDB() *gorm.DB {
 		}).WithError(err).Fatal("Failed to connect to database")
 	}
 
-	logrus.Info("Database connected successfully")
+	if err := db.Use(tracing.NewPlugin()); err != nil {
+		logrus.WithError(err).Warn("Falha ao habilitar OpenTelemetry no GORM")
+	}
+
+	logrus.Info("Database connected successfully with OpenTelemetry tracing")
+	DB = db
 	return DB
 }

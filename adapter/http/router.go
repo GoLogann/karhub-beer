@@ -8,6 +8,7 @@ import (
 	"github.com/GoLogann/karhub-beer/infra/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/fx"
 )
 
@@ -44,10 +45,17 @@ func RegisterRoutes(
 	router.SetupBeerRoutes(protected, beerHandler)
 }
 
-
-
 func SetupRouter() *gin.Engine {
-	return gin.Default()
+	r := gin.New()
+
+	// aplica middleware de observabilidade em todas as rotas
+	r.Use(otelgin.Middleware("karhub-beer-api"))
+
+	// também adiciona logger e recovery do Gin
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
+	return r
 }
 
 func RouterModule() fx.Option {

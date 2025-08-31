@@ -44,13 +44,14 @@ import (
 	"github.com/GoLogann/karhub-beer/module/beer"
 	"github.com/GoLogann/karhub-beer/module/redis"
 	"github.com/GoLogann/karhub-beer/module/spotify"
+	"github.com/GoLogann/karhub-beer/module/trace"
 
 	_ "github.com/GoLogann/karhub-beer/docs"
 
+	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/fx"
-	"github.com/gin-gonic/gin"
 )
 
 func setupSwagger(r *gin.Engine) {
@@ -59,6 +60,7 @@ func setupSwagger(r *gin.Engine) {
 
 func main() {
 	app := fx.New(
+		trace.TracerModule(),    
 		fx.Provide(postgres.InitDB),
 		http.RouterModule(),
 		spotify.SpotifyModule,
