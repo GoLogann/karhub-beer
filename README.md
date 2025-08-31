@@ -1,8 +1,3 @@
-Boa! 👍 Faz todo sentido deixar o README bem claro, já que o avaliador vai clonar o repo, rodar o `docker compose up` e esperar que tudo funcione sem esforço extra.
-Segue um modelo de README.md que cobre: **overview do projeto**, **stack utilizada**, **instruções para rodar com Docker Compose**, e **como acessar cada serviço**.
-
----
-
 # 🍺 KarHub Beer API
 
 Backend em **Go** desenvolvido como desafio técnico para vaga de **Desenvolvedor Backend**.
