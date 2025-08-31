@@ -108,15 +108,15 @@ services:
       DB_TIMEZONE: America/Sao_Paulo
       DB_CONNECT_TIMEOUT: 10
 
-      SPOTIFY_CLIENT_ID: xxx
-      SPOTIFY_CLIENT_SECRET: yyy
+      SPOTIFY_CLIENT_ID: yyy
+      SPOTIFY_CLIENT_SECRET: xxx
 
       KC_BASE_URL: http://karhub-keycloak:8080
       KC_ISSUER_URL: http://karhub-keycloak:8080/realms/karhub-beer
       KC_CLIENT_ID: karhub-beer-api
       KC_REALM: karhub-beer
-      KC_ADMIN_USER: admin
-      KC_ADMIN_PASS: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
 
       REDIS_HOST: karhub-beer-redis:6379
 
