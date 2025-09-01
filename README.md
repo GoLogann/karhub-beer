@@ -117,7 +117,7 @@ REDIS_HOST=localhost:6379
 
 # OpenTelemetry Configuration
 OTEL_SERVICE_NAME=karhub-beer-api
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4318
 ```
 
 #### 4. Suba os serviços de infraestrutura (sem a API)
