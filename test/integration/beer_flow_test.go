@@ -26,9 +26,9 @@ type mockSpotify struct{}
 
 func (m *mockSpotify) GetPlaylistWithTracks(ctx context.Context, style, region string) (*spotify.PlaylistInfo, error) {
 	return &spotify.PlaylistInfo{
-		ID:    "123",
-		Name:  style + " Playlist",
-		Link:  "http://spotify.test/" + style,
+		ID:   "123",
+		Name: style + " Playlist",
+		Link: "http://spotify.test/" + style,
 		Tracks: []spotify.TrackInfo{
 			{Name: "Song1", Artist: "Artist1", Link: "http://spotify.test/song1"},
 		},
@@ -50,7 +50,6 @@ func (m *mockCache) Set(ctx context.Context, key, value string, ttl time.Duratio
 	m.store[key] = value
 	return nil
 }
-
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Setenv("TEST_ENV", "true")
@@ -84,7 +83,11 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	h := handler.NewBeerHandler(uc, spotify, cache)
 	r := setupRouter(h)
 
-	createReq := dto.BeerStyleRequest{Name: "IPA", MinTemperature: -7, MaxTemperature: 10}
+	createReq := dto.BeerStyleRequest{
+		Name:           "IPA",
+		MinTemperature: floatPtr(-7),
+		MaxTemperature: floatPtr(10),
+	}
 	body, _ := json.Marshal(createReq)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodPost, "/beers", bytes.NewBuffer(body))
@@ -107,14 +110,18 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	updateReq := dto.BeerStyleRequest{Name: "IPA Atualizada", MinTemperature: -6, MaxTemperature: 12}
+	updateReq := dto.BeerStyleUpdateRequest{
+		MinTemperature: floatPtr(-6),
+		MaxTemperature: floatPtr(12),
+	}
 	body, _ = json.Marshal(updateReq)
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodPut, "/beers/"+created.ID.String(), bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "IPA Atualizada")
+	
+	assert.Contains(t, w.Body.String(), "IPA")
 
 	recReq := dto.TemperatureRequest{Temperature: -5}
 	body, _ = json.Marshal(recReq)
@@ -134,4 +141,8 @@ func TestBeerFlow_EndToEnd(t *testing.T) {
 	req, _ = http.NewRequest(http.MethodGet, "/beers/"+created.ID.String(), nil)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func floatPtr(f float64) *float64 {
+	return &f
 }

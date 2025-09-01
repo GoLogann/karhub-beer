@@ -28,8 +28,8 @@ type mockBeerUsecase struct {
 func (m *mockBeerUsecase) Create(s *domain.BeerStyle) (*domain.BeerStyle, error) {
 	return m.style, m.err
 }
-func (m *mockBeerUsecase) Update(s *domain.BeerStyle) (*domain.BeerStyle, error) {
-	return m.style, m.err
+func (m *mockBeerUsecase) Update(id string, req *dto.BeerStyleUpdateRequest) (*domain.BeerStyle, error) {
+    return m.style, m.err
 }
 func (m *mockBeerUsecase) Delete(id uuid.UUID) error                       { return m.err }
 func (m *mockBeerUsecase) GetByID(id uuid.UUID) (*domain.BeerStyle, error) { return m.style, m.err }
@@ -99,7 +99,7 @@ func TestBeerHandler_Create(t *testing.T) {
 	h := handler.NewBeerHandler(uc, nil, nil)
 	r := setupRouter(h)
 
-	body := dto.BeerStyleRequest{Name: "Weissbier", MinTemperature: -1, MaxTemperature: 3}
+	body := dto.BeerStyleRequest{Name: "Weissbier", MinTemperature: floatPtr(-1), MaxTemperature: floatPtr(3)}
 	b, _ := json.Marshal(body)
 
 	w := httptest.NewRecorder()
@@ -142,8 +142,8 @@ func TestBeerHandler_Update(t *testing.T) {
 
 	body := dto.BeerStyleRequest{
 		Name:           "heineken",
-		MinTemperature: -1,
-		MaxTemperature: 5,
+		MinTemperature: floatPtr(-1),
+		MaxTemperature: floatPtr(5),
 	}
 	b, _ := json.Marshal(body)
 
@@ -260,4 +260,8 @@ func TestBeerHandler_Recommend_InvalidBody(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func floatPtr(f float64) *float64 {
+	return &f
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/GoLogann/karhub-beer/infra/spotify"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type BeerHandler struct {
@@ -47,17 +49,16 @@ func (h *BeerHandler) Create(c *gin.Context) {
 		return
 	}
 
+	if req.MinTemperature == nil || req.MaxTemperature == nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "min_temperature e max_temperature são obrigatórios"})
+		return
+	}
+
 	style := domain.BeerStyle{
 		ID:             uuid.New(),
 		Name:           req.Name,
-		MinTemperature: req.MinTemperature,
-		MaxTemperature: req.MaxTemperature,
-	}
-
-	err := style.Validate()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
-		return
+		MinTemperature: *req.MinTemperature,
+		MaxTemperature: *req.MaxTemperature,
 	}
 
 	created, err := h.uc.Create(&style)
@@ -68,6 +69,7 @@ func (h *BeerHandler) Create(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, created)
 }
+
 
 // GetAll godoc
 // @Summary Listar todos os estilos de cerveja
@@ -135,25 +137,25 @@ func (h *BeerHandler) GetByID(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorResponse "Erro interno do servidor"
 // @Router /api/v1/beers/{id} [put]
 func (h *BeerHandler) Update(c *gin.Context) {
-	var req dto.BeerStyleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
-		return
-	}
+    id := c.Param("id")
 
-	style := domain.BeerStyle{
-		Name:           req.Name,
-		MinTemperature: req.MinTemperature,
-		MaxTemperature: req.MaxTemperature,
-	}
+    var req dto.BeerStyleUpdateRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: err.Error()})
+        return
+    }
 
-	updated, err := h.uc.Update(&style)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: err.Error()})
-		return
-	}
+    updated, err := h.uc.Update(id, &req)
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: "Estilo de cerveja não encontrado"})
+            return
+        }
+        c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: err.Error()})
+        return
+    }
 
-	c.JSON(http.StatusOK, updated)
+    c.JSON(http.StatusOK, updated)
 }
 
 // Delete godoc

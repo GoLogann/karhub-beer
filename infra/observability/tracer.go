@@ -17,7 +17,6 @@ type TracerConfig struct {
 	Endpoint    string
 }
 
-// NewTracer inicializa OpenTelemetry e retorna função de shutdown
 func NewTracer(cfg TracerConfig) func(context.Context) error {
 	ctx := context.Background()
 
@@ -36,8 +35,7 @@ func NewTracer(cfg TracerConfig) func(context.Context) error {
 			semconv.ServiceName(cfg.ServiceName),
 		)),
 	)
-
-	// registra o tracer e propagador global
+	
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
