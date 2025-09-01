@@ -53,6 +53,7 @@
 									"    if (responseData.access_token) {\r",
 									"        const accessToken = responseData.access_token;\r",
 									"\r",
+									"        // seta a variável global em MAIÚSCULAS\r",
 									"        pm.globals.set(\"KARHUB_BEER_USER\", accessToken);\r",
 									"\r",
 									"        console.log(\"Token de acesso salvo na variável global KARHUB_BEER_USER.\");\r",
@@ -128,12 +129,12 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/v1/beers/recommend",
+							"raw": "http://localhost:8081/api/v1/beers/recommend",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "8080",
+							"port": "8081",
 							"path": [
 								"api",
 								"v1",
@@ -169,12 +170,12 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/v1/beers/",
+							"raw": "http://localhost:8081/api/v1/beers/",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "8080",
+							"port": "8081",
 							"path": [
 								"api",
 								"v1",
@@ -201,12 +202,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/v1/beers/",
+							"raw": "http://localhost:8081/api/v1/beers/",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "8080",
+							"port": "8081",
 							"path": [
 								"api",
 								"v1",
@@ -233,7 +234,18 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": ""
+							"raw": "http://localhost:8081/api/v1/beers/a6cfa97c-316d-4f5e-b84f-6b85f62f6e9a",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"v1",
+								"beers",
+								"a6cfa97c-316d-4f5e-b84f-6b85f62f6e9a"
+							]
 						}
 					},
 					"response": []
@@ -263,7 +275,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8081/api/v1/beers/:id",
+							"raw": "http://localhost:8081/api/v1/beers/a6cfa97c-316d-4f5e-b84f-6b85f62f6e9a",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -273,13 +285,7 @@
 								"api",
 								"v1",
 								"beers",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
+								"a6cfa97c-316d-4f5e-b84f-6b85f62f6e9a"
 							]
 						}
 					},
@@ -301,7 +307,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8081/api/v1/beers/:id",
+							"raw": "http://localhost:8081/api/v1/beers/a6cfa97c-316d-4f5e-b84f-6b85f62f6e9a",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -311,13 +317,7 @@
 								"api",
 								"v1",
 								"beers",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
+								"a6cfa97c-316d-4f5e-b84f-6b85f62f6e9a"
 							]
 						}
 					},
