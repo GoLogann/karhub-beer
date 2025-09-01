@@ -121,7 +121,7 @@ services:
       REDIS_HOST: karhub-beer-redis:6379
 
       OTEL_SERVICE_NAME: karhub-beer-api
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: karhub-beer-jaeger:4318
     ports:
       - "8081:8081"
     networks:
